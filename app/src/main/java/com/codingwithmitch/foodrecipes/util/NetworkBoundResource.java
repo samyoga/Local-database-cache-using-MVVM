@@ -42,9 +42,22 @@ public abstract class NetworkBoundResource<CacheObject, RequestObject> {
                 if (shouldFetch(cacheObject)){
                     //get data from the network
 
+                }else{
+                    results.addSource(dbSource, new Observer<CacheObject>() {
+                        @Override
+                        public void onChanged(@Nullable CacheObject cacheObject) {
+                            setValue(Resource.success(cacheObject));
+                        }
+                    });
                 }
             }
         });
+    }
+
+    private void setValue(Resource<CacheObject> newValue){
+        if (results.getValue() != newValue){
+            results.setValue(newValue);
+        }
     }
 
 
