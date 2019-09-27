@@ -1,6 +1,10 @@
 package com.codingwithmitch.foodrecipes;
 
 
+import android.os.Handler;
+import android.os.Looper;
+
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -15,9 +19,25 @@ public class AppExecutors {
         return instance;
     }
 
-    private final ScheduledExecutorService mNetworkIO = Executors.newScheduledThreadPool(3);
+    private final Executor mDiskIO =  Executors.newSingleThreadExecutor();
 
-    public ScheduledExecutorService networkIO(){
-        return mNetworkIO;
+    private final Executor mMainThreadExecutor = new MainThreadExecutor();
+
+    public Executor diskIO(){
+        return mDiskIO;
+    }
+
+    public Executor mainThread(){
+        return mMainThreadExecutor;
+    }
+
+    private static class MainThreadExecutor implements Executor{
+
+        private Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+
+        @Override
+        public void execute(Runnable command) {
+            mainThreadHandler.post(command);
+        }
     }
 }
