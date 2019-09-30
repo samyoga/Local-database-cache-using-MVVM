@@ -1,6 +1,6 @@
 package com.example.foodrecipes.util;
 
-import android.arch.lifecycle.LiveData;
+import androidx.lifecycle.LiveData;
 
 import com.example.foodrecipes.requests.responses.ApiResponse;
 

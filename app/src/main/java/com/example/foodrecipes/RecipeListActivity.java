@@ -1,20 +1,26 @@
 package com.example.foodrecipes;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import android.util.Log;
 
 
 import com.example.foodrecipes.adapters.OnRecipeListener;
 import com.example.foodrecipes.adapters.RecipeRecyclerAdapter;
+import com.example.foodrecipes.models.Recipe;
+import com.example.foodrecipes.util.Resource;
+import com.example.foodrecipes.util.Testing;
 import com.example.foodrecipes.util.VerticalSpacingItemDecorator;
 import com.example.foodrecipes.viewmodels.RecipeListViewModel;
+
+import java.util.List;
 
 
 public class RecipeListActivity extends BaseActivity implements OnRecipeListener {
@@ -55,7 +61,7 @@ public class RecipeListActivity extends BaseActivity implements OnRecipeListener
             @Override
             public boolean onQueryTextSubmit(String s) {
 
-
+                searchRecipesApi(s);
                 return false;
             }
 
@@ -67,6 +73,19 @@ public class RecipeListActivity extends BaseActivity implements OnRecipeListener
     }
 
     private void subscribeObservers(){
+        mRecipeListViewModel.getRecipes().observe(this, new Observer<Resource<List<Recipe>>>() {
+            @Override
+            public void onChanged(@Nullable Resource<List<Recipe>> listResource) {
+                if (listResource != null){
+                    Log.d(TAG, "onChanged: status " + listResource.status);
+
+                    if (listResource.data != null){
+                        Testing.printRecipes(listResource.data, "data");
+                    }
+                }
+            }
+        });
+
         mRecipeListViewModel.getViewState().observe(this, new Observer<RecipeListViewModel.ViewState>() {
             @Override
             public void onChanged(@Nullable RecipeListViewModel.ViewState viewState) {
@@ -87,6 +106,10 @@ public class RecipeListActivity extends BaseActivity implements OnRecipeListener
         });
     }
 
+    private void searchRecipesApi(String query){
+        mRecipeListViewModel.searchRecipesApi(query, 1);
+    }
+
     private void displaySearchCategories(){
         mAdapter.displaySearchCategories();
     }
@@ -100,7 +123,7 @@ public class RecipeListActivity extends BaseActivity implements OnRecipeListener
 
     @Override
     public void onCategoryClick(String category) {
-        
+        searchRecipesApi(category);
     }
 
 }

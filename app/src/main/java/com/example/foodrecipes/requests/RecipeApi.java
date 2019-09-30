@@ -1,12 +1,11 @@
 package com.example.foodrecipes.requests;
 
-import android.arch.lifecycle.LiveData;
+import androidx.lifecycle.LiveData;
 
 import com.example.foodrecipes.requests.responses.ApiResponse;
 import com.example.foodrecipes.requests.responses.RecipeResponse;
 import com.example.foodrecipes.requests.responses.RecipeSearchResponse;
 
-import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
