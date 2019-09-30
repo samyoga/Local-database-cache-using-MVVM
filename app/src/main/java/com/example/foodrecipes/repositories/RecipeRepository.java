@@ -9,8 +9,10 @@ import com.example.foodrecipes.AppExecutors;
 import com.example.foodrecipes.models.Recipe;
 import com.example.foodrecipes.persistence.RecipeDao;
 import com.example.foodrecipes.persistence.RecipeDatabase;
+import com.example.foodrecipes.requests.ServiceGenerator;
 import com.example.foodrecipes.requests.responses.ApiResponse;
 import com.example.foodrecipes.requests.responses.RecipeSearchResponse;
+import com.example.foodrecipes.util.Constants;
 import com.example.foodrecipes.util.NetworkBoundResource;
 import com.example.foodrecipes.util.Resource;
 
@@ -53,7 +55,12 @@ public class RecipeRepository {
             @NonNull
             @Override
             protected LiveData<ApiResponse<RecipeSearchResponse>> createCall() {
-                return null;
+                return ServiceGenerator.getRecipeApi()
+                        .searchRecipe(
+                                Constants.API_KEY,
+                                query,
+                                String.valueOf(pageNumber)
+                        );
             }
         }.getAsLiveData();
     }
