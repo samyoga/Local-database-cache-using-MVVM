@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.example.foodrecipes.AppExecutors;
 import com.example.foodrecipes.models.Recipe;
@@ -19,6 +20,8 @@ import com.example.foodrecipes.util.Resource;
 import java.util.List;
 
 public class RecipeRepository {
+
+    private static final String TAG = "RecipeRepository";
 
     private static RecipeRepository instance;
     private RecipeDao recipeDao;
@@ -38,7 +41,27 @@ public class RecipeRepository {
         return new NetworkBoundResource<List<Recipe>, RecipeSearchResponse>(AppExecutors.getInstance()){
             @Override
             protected void saveCallResult(@NonNull RecipeSearchResponse item) {
+                if (item.getRecipes() != null){ //recipe list will be null if api key is expired
 
+                    Recipe[] recipes = new Recipe[item.getRecipes().size()];
+                    int index = 0;
+                    for (long rowid: recipeDao.insertRecipes((Recipe[]) (item.getRecipes().toArray(recipes)))){
+                        if (rowid == -1){
+                            Log.d(TAG, "saveCallResult: CONFLICT...this recipe is already in the cache");
+                            //if the recipe already exists then we don't have to set the ingredients or timestamp b/c they will be erased
+                            recipeDao.updateRecipe(
+                                    recipes[index].getRecipe_id(),
+                                    recipes[index].getTitle(),
+                                    recipes[index].getPublisher(),
+                                    recipes[index].getImage_url(),
+                                    recipes[index].getSocial_rank()
+
+                            );
+                        }
+                        index++;
+                    }
+
+                }
             }
 
             @Override
