@@ -18,7 +18,7 @@ public abstract class RecipeDatabase extends RoomDatabase {
 
     private static RecipeDatabase instance;
 
-    private static RecipeDatabase getInstance(final Context context){
+    public static RecipeDatabase getInstance(final Context context){
         if (instance == null){
             instance = Room.databaseBuilder(
                     context.getApplicationContext(),
@@ -28,4 +28,6 @@ public abstract class RecipeDatabase extends RoomDatabase {
         }
         return instance;
     }
+
+    public abstract RecipeDao getRecipeDao();
 }
