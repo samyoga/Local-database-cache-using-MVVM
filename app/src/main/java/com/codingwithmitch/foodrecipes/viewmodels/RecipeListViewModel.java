@@ -79,7 +79,7 @@ public class RecipeListViewModel extends AndroidViewModel {
     }
 
     public void searchNextPage(){
-        if (!isQueryExhausted && !isPerformingQuery){
+        if(!isQueryExhausted && !isPerformingQuery){
             pageNumber++;
             executeSearch();
         }
@@ -95,11 +95,11 @@ public class RecipeListViewModel extends AndroidViewModel {
         recipes.addSource(repositorySource, new Observer<Resource<List<Recipe>>>() {
             @Override
             public void onChanged(@Nullable Resource<List<Recipe>> listResource) {
-                if (!cancelRequest){
+                if(!cancelRequest){
                     if(listResource != null){
                         recipes.setValue(listResource);
                         if(listResource.status == Resource.Status.SUCCESS ){
-                            Log.d(TAG, "onChanged: REQUEST TIME: " + (System.currentTimeMillis() - requestStartTime) / 1000 + "seconds.");
+                            Log.d(TAG, "onChanged: REQUEST TIME: " + (System.currentTimeMillis() - requestStartTime) / 1000 + " seconds.");
                             isPerformingQuery = false;
                             if(listResource.data != null) {
                                 if (listResource.data.size() == 0) {
@@ -116,7 +116,7 @@ public class RecipeListViewModel extends AndroidViewModel {
                             recipes.removeSource(repositorySource);
                         }
                         else if(listResource.status == Resource.Status.ERROR ){
-                            Log.d(TAG, "onChanged: REQUEST TIME: " + (System.currentTimeMillis() - requestStartTime) / 1000 + "seconds.");
+                            Log.d(TAG, "onChanged: REQUEST TIME: " + (System.currentTimeMillis() - requestStartTime) / 1000 + " seconds.");
                             isPerformingQuery = false;
                             recipes.removeSource(repositorySource);
                         }
@@ -125,17 +125,16 @@ public class RecipeListViewModel extends AndroidViewModel {
                         recipes.removeSource(repositorySource);
                     }
                 }
-                else {
+                else{
                     recipes.removeSource(repositorySource);
                 }
-
             }
         });
     }
 
     public void cancelSearchRequest(){
-        if (isPerformingQuery){
-            Log.d(TAG, "cancelSearchRequest: canceling the search request");
+        if(isPerformingQuery){
+            Log.d(TAG, "cancelSearchRequest: canceling the search request.");
             cancelRequest = true;
             isPerformingQuery = false;
             pageNumber = 1;

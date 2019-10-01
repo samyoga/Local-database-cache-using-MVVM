@@ -1,6 +1,5 @@
 package com.codingwithmitch.foodrecipes;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -19,12 +18,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.util.ViewPreloadSizeProvider;
 import com.codingwithmitch.foodrecipes.adapters.OnRecipeListener;
 import com.codingwithmitch.foodrecipes.adapters.RecipeRecyclerAdapter;
 import com.codingwithmitch.foodrecipes.models.Recipe;
 import com.codingwithmitch.foodrecipes.util.Resource;
-
+import com.codingwithmitch.foodrecipes.util.Testing;
 import com.codingwithmitch.foodrecipes.util.VerticalSpacingItemDecorator;
 import com.codingwithmitch.foodrecipes.viewmodels.RecipeListViewModel;
 
@@ -65,36 +66,34 @@ public class RecipeListActivity extends BaseActivity implements OnRecipeListener
                     Log.d(TAG, "onChanged: status: " + listResource.status);
 
                     if(listResource.data != null) {
-                        switch (listResource.status){
-                            case LOADING:{
-                                if (mRecipeListViewModel.getPageNumber() > 1){
+                        switch (listResource.status) {
+                            case LOADING: {
+                                if(mRecipeListViewModel.getPageNumber() > 1){
                                     mAdapter.displayLoading();
                                 }
-                                else {
+                                else{
                                     mAdapter.displayOnlyLoading();
                                 }
                                 break;
                             }
-
-                            case ERROR:{
-                                Log.e(TAG, "onChanged: cannot refresh the cache.");
-                                Log.e(TAG, "onChanged: ERROR message: " + listResource.message);
-                                Log.e(TAG, "onChanged: status: ERROR, #recipes " + listResource.data.size());
+                            case SUCCESS: {
+                                Log.d(TAG, "onChanged: cache has been refreshed.");
+                                Log.d(TAG, "onChanged: status: SUCCESS, #Recipes: " + listResource.data.size());
+                                mAdapter.hideLoading();
+                                mAdapter.setRecipes(listResource.data);
+                                break;
+                            }
+                            case ERROR: {
+                                Log.e(TAG, "onChanged: cannot refresh cache.");
+                                Log.e(TAG, "onChanged: ERROR message: " + listResource.message );
+                                Log.e(TAG, "onChanged: status: ERROR, #Recipes: " + listResource.data.size());
                                 mAdapter.hideLoading();
                                 mAdapter.setRecipes(listResource.data);
                                 Toast.makeText(RecipeListActivity.this, listResource.message, Toast.LENGTH_SHORT).show();
 
-                                if (listResource.message.equals(QUERY_EXHAUSTED)){
+                                if(listResource.message.equals(QUERY_EXHAUSTED)){
                                     mAdapter.setQueryExhausted();
                                 }
-                                break;
-                            }
-
-                            case SUCCESS:{
-                                Log.d(TAG, "onChanged: cache has been refreshed");
-                                Log.d(TAG, "onChanged: status: SUCCESS, #Recipes: " + listResource.data.size());
-                                mAdapter.hideLoading();
-                                mAdapter.setRecipes(listResource.data);
                                 break;
                             }
                         }
@@ -125,16 +124,6 @@ public class RecipeListActivity extends BaseActivity implements OnRecipeListener
         });
     }
 
-    private RequestManager initGlide(){
-
-        RequestOptions options = new RequestOptions()
-                .placeholder(R.drawable.white_background)
-                .error(R.drawable.white_background);
-
-        return Glide.with(this)
-                .setDefaultRequestOptions(options);
-    }
-
     private void searchRecipeApi(String query){
         mRecyclerView.smoothScrollToPosition(0);
         mRecipeListViewModel.searchRecipesApi(query, 1);
@@ -142,24 +131,35 @@ public class RecipeListActivity extends BaseActivity implements OnRecipeListener
     }
 
     private void initRecyclerView(){
-        mAdapter = new RecipeRecyclerAdapter(this, initGlide());
+        ViewPreloadSizeProvider<String> viewPreloader = new ViewPreloadSizeProvider<>();
+        mAdapter = new RecipeRecyclerAdapter(this, initGlide(), viewPreloader);
         VerticalSpacingItemDecorator itemDecorator = new VerticalSpacingItemDecorator(30);
         mRecyclerView.addItemDecoration(itemDecorator);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        RecyclerViewPreloader<String> preloader = new RecyclerViewPreloader<String>(Glide.with(this), mAdapter, viewPreloader, 30);
+        mRecyclerView.addOnScrollListener(preloader);
+
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
 
-                if (!mRecyclerView.canScrollVertically(1)
-                && mRecipeListViewModel.getViewstate().getValue() == RecipeListViewModel.ViewState.RECIPES){
+                if(!mRecyclerView.canScrollVertically(1)
+                        && mRecipeListViewModel.getViewstate().getValue() == RecipeListViewModel.ViewState.RECIPES){
+                    // search the next page
                     mRecipeListViewModel.searchNextPage();
                 }
             }
         });
 
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    private RequestManager initGlide(){
+        RequestOptions options = new RequestOptions()
+                .placeholder(R.drawable.white_background);
+
+        return Glide.with(this).setDefaultRequestOptions(options);
     }
 
     private void initSearchView(){
@@ -193,11 +193,13 @@ public class RecipeListActivity extends BaseActivity implements OnRecipeListener
         mAdapter.displaySearchCategories();
     }
 
+
     @Override
     public void onBackPressed() {
-        if (mRecipeListViewModel.getViewstate().getValue() == RecipeListViewModel.ViewState.CATEGORIES){
+        if(mRecipeListViewModel.getViewstate().getValue() == RecipeListViewModel.ViewState.CATEGORIES){
             super.onBackPressed();
-        }else {
+        }
+        else {
             mRecipeListViewModel.cancelSearchRequest();
             mRecipeListViewModel.setViewCategories();
         }

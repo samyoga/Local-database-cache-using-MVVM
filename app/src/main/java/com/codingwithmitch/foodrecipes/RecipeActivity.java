@@ -1,6 +1,7 @@
 package com.codingwithmitch.foodrecipes;
 
 import android.os.Bundle;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;

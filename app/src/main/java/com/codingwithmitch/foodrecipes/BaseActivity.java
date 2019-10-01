@@ -1,6 +1,5 @@
 package com.codingwithmitch.foodrecipes;
 
-
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
