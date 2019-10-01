@@ -108,7 +108,7 @@ public class RecipeRepository {
                 int lastRefresh = data.getTimestamp();
                 Log.d(TAG, "shouldFetch: last refresh: " + lastRefresh);
                 Log.d(TAG, "shouldFetch: it's been " + ((currentTime - lastRefresh) /60/60/24)
-                        + "days since this recipe was last refreshed. 30 days must elapse before refreshing");
+                        + " days since this recipe was last refreshed. 30 days must elapse before refreshing");
 
                 if ((currentTime - data.getTimestamp()) >= Constants.RECIPE_REFRESH_TIME){
                     Log.d(TAG, "shouldFetch: Should refresh recipe?" + true);
